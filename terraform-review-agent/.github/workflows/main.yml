@@ -1,0 +1,53 @@
+name: Terraform-AI-Review-Agent
+
+on:
+  pull_request:
+    paths: "terraform-review-agent/**"
+
+jobs:
+  terraform-ai-review:
+    runs-on: ubuntu-latest  
+
+    steps:
+      - name: Checkout the Code
+        uses: actions/checkout@v4
+      
+      - name: Install Terrascan
+        run: |
+          curl -L https://github.com/tenable/terrascan/releases/latest/download/terrascan_linux_amd64.tar.gz \
+          | tar -xz
+          sudo mv terrascan /usr/local/bin/
+
+      - name: Run Terrascan
+        run: |
+          terrascan scan \
+            -i terraform \
+            -d terraform-review-agent/terraform \
+            -o json > terrascan_report.json
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Invoke Terraform AI Review Lambda
+        id: ai_review
+        run: |
+          aws lambda invoke \
+            --function-name terraform-ai-review-agent \
+            --payload file://terrascan_report.json \
+            response.json
+
+          cat response.json
+
+      - name: Fail PR if AI rejects
+        run: |
+          VERDICT=$(jq -r '.ai_review' response.json | grep -i "REJECT" || true)
+          if [[ ! -z "$VERDICT" ]]; then
+            echo "❌ AI Agent rejected Terraform changes"
+            exit 1
+          else
+            echo "✅ AI Agent approved or approved with changes"
+          fi
