@@ -5,7 +5,7 @@ import boto3
 
 # ---------------- CONFIG ---------------- #
 GEMINI_MODEL = "gemini-2.5-flash"
-SECRET_NAME = "gemini-api-key"
+SECRET_NAME = "gemini-api-key-1"
 REGION_NAME = "us-east-1"  # change if needed
 
 GEMINI_API_KEY = None
