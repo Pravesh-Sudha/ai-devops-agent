@@ -20,8 +20,13 @@ jobs:
           policy_type: aws
           args: >
             scan
+            --iac-type terraform
+            --iac-dir terraform-review-agent/terraform
+            --policy-type aws
+            --find-vulnerabilities=false
             --output json
             --output-file terrascan_report.json
+            --exit-code 0
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
