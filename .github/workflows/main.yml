@@ -11,6 +11,12 @@ jobs:
     steps:
       - name: Checkout the Code
         uses: actions/checkout@v4
+
+      - name: Terraform Init
+        run: terraform -chdir=terraform-review-agent/terraform init
+
+      - name: Terraform Plan
+        run: terraform -chdir=terraform-review-agent/terraform plan -out=tfplan
       
       - name: Run Terrascan (JSON output)
         uses: accurics/terrascan-action@v1
