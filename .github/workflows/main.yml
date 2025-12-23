@@ -11,27 +11,39 @@ jobs:
     steps:
       - name: Checkout the Code
         uses: actions/checkout@v4
-      
-      - name: Install Terrascan
-        run: |
-          curl -L https://github.com/tenable/terrascan/releases/latest/download/terrascan_linux_amd64.tar.gz \
-          | tar -xz
-          sudo mv terrascan /usr/local/bin/
 
-      - name: Run Terrascan
-        run: |
-          terrascan scan \
-            -i terraform \
-            -d terraform-review-agent/terraform \
-            -o json > terrascan_report.json
-
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.1
+          
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
+          
+      - name: Terraform Init
+        working-directory: terraform-review-agent/terraform
+        run: terraform init -input=false
 
+      - name: Terraform Plan
+        working-directory: terraform-review-agent/terraform
+        env:
+          TF_VAR_gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+        run: terraform plan -input=false -out=tfplan
+
+      - name: Run Terrascan (Plan-based)
+        uses: accurics/terrascan-action@v1
+        with:
+          entryPoint: scan
+          args: >
+            --terraform-plan terraform-review-agent/terraform/tfplan
+            --policy-type aws
+            --output json
+            --output-file terrascan_report.json
+            --exit-code 0
       - name: Invoke Terraform AI Review Lambda
         id: ai_review
         run: |
@@ -39,9 +51,7 @@ jobs:
             --function-name terraform-ai-review-agent \
             --payload file://terrascan_report.json \
             response.json
-
           cat response.json
-
       - name: Fail PR if AI rejects
         run: |
           VERDICT=$(jq -r '.ai_review' response.json | grep -i "REJECT" || true)
