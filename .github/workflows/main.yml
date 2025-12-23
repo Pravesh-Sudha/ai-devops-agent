@@ -12,18 +12,14 @@ jobs:
       - name: Checkout the Code
         uses: actions/checkout@v4
       
-      - name: Install Terrascan
-        run: |
-          curl -L https://github.com/tenable/terrascan/releases/latest/download/terrascan_linux_amd64.tar.gz \
-          | tar -xz
-          sudo mv terrascan /usr/local/bin/
-
       - name: Run Terrascan
-        run: |
-          terrascan scan \
-            -i terraform \
-            -d terraform-review-agent/terraform \
-            -o json > terrascan_report.json
+        uses: accurics/terrascan-action@v1
+        with:
+          iac_type: terraform
+          policy_type: aws
+          scan_path: terraform-review-agent/terraform
+          output_format: json
+          output_file: terrascan_report.json
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
