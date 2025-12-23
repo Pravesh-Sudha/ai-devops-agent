@@ -12,14 +12,16 @@ jobs:
       - name: Checkout the Code
         uses: actions/checkout@v4
       
-      - name: Run Terrascan
+      - name: Run Terrascan (JSON output)
         uses: accurics/terrascan-action@v1
         with:
           iac_type: terraform
+          iac_dir: terraform-review-agent/terraform
           policy_type: aws
-          scan_path: terraform-review-agent/terraform
-          output_format: json
-          output_file: terrascan_report.json
+          args: >
+            scan
+            --output json
+            --output-file terrascan_report.json
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
