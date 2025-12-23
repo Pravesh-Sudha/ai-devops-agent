@@ -12,24 +12,26 @@ jobs:
       - name: Checkout the Code
         uses: actions/checkout@v4
 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+          
       - name: Terraform Init
-        run: terraform -chdir=terraform-review-agent/terraform init
+        working-directory: terraform-review-agent/terraform
+        run: terraform init -input=false
 
       - name: Terraform Plan
-        run: terraform -chdir=terraform-review-agent/terraform plan -out=tfplan
-      
-      - name: Run Terrascan (JSON output)
+        working-directory: terraform-review-agent/terraform
+        run: terraform plan -input=false -out=tfplan
+
+      - name: Run Terrascan (Plan-based)
         uses: accurics/terrascan-action@v1
         with:
-          iac_type: terraform
-          iac_dir: terraform-review-agent/terraform
-          policy_type: aws
+          entryPoint: scan
           args: >
-            scan
-            --iac-type terraform
-            --iac-dir terraform-review-agent/terraform
+            --terraform-plan terraform-review-agent/terraform/tfplan
             --policy-type aws
-            --find-vulnerabilities=false
             --output json
             --output-file terrascan_report.json
             --exit-code 0
