@@ -37,8 +37,8 @@ jobs:
       - name: Run Terrascan (Plan-based)
         uses: accurics/terrascan-action@v1
         with:
-          entryPoint: scan
           args: >
+            scan
             --terraform-plan terraform-review-agent/terraform/tfplan
             --policy-type aws
             --output json
