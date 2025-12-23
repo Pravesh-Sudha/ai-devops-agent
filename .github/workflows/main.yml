@@ -38,7 +38,7 @@ jobs:
         uses: accurics/terrascan-action@v1
         with:
           args: >
-            scan
+            scan 
             --terraform-plan terraform-review-agent/terraform/tfplan
             --policy-type aws
             --output json
