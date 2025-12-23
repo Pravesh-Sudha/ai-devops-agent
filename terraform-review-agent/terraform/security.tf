@@ -4,7 +4,7 @@ resource "aws_security_group" "mario_ecs_sg" {
   vpc_id      = module.vpc.vpc_id
 
   tags = {
-    Name = "${var.project_name}_ecs_sg"
+    Name = "${var.project_name}_ecs_sg-1"
   }
 }
 
