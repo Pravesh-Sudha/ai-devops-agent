@@ -35,15 +35,14 @@ jobs:
         run: terraform plan -input=false -out=tfplan
 
       - name: Run Terrascan (Plan-based)
-        uses: accurics/terrascan-action@v1
+        id: terrascan
+        uses: tenable/terrascan-action@main
         with:
-          args: >
-            scan
-            --terraform-plan terraform-review-agent/terraform/tfplan
-            --policy-type aws
-            --output json
-            --output-file terrascan_report.json
-            --exit-code 0
+           iac_type: 'terraform'
+           iac_version: 'v14'
+           policy_type: 'aws'
+           only_warn: true
+           
       - name: Invoke Terraform AI Review Lambda
         id: ai_review
         run: |
