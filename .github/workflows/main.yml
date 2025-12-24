@@ -35,8 +35,7 @@ jobs:
             -i terraform \
             -d terraform-review-agent/terraform \
             -t aws \
-            -o json \
-            --log-output-dir terrascan_report.json 
+            -o json > terrascan_report.json 
 
       - name: Upload Terrascan Report
         uses: actions/upload-artifact@v4
