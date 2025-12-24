@@ -35,8 +35,7 @@ jobs:
             -i terraform \
             -d terraform-review-agent/terraform \
             -t aws \
-            -o json > terrascan_report.json \
-            --exit-code 0 || true
+            -o json > terrascan_report.json || true
 
       - name: Upload Terrascan Report
         uses: actions/upload-artifact@v4
