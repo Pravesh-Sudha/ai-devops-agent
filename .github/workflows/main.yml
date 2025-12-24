@@ -1,7 +1,7 @@
 name: Terraform-AI-Review-Agent
 
 on:
-  pull_request:
+  push:
     paths: "terraform-review-agent/**"
 
 jobs:
@@ -12,11 +12,6 @@ jobs:
       - name: Checkout the Code
         uses: actions/checkout@v4
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.13.1
-          
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -24,25 +19,32 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
           
-      - name: Terraform Init
-        working-directory: terraform-review-agent/terraform
-        run: terraform init -input=false
+      - name: Install Terrascan
+        run: |
+          curl -L https://github.com/tenable/terrascan/releases/download/v1.18.3/terrascan_1.18.3_Linux_x86_64.tar.gz \
+            | tar -xz
+          sudo mv terrascan /usr/local/bin/
+          terrascan version
 
-      - name: Terraform Plan
-        working-directory: terraform-review-agent/terraform
-        env:
-          TF_VAR_gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
-        run: terraform plan -input=false -out=tfplan
+      - name: Terrascan Init
+        run: terrascan init
 
-      - name: Run Terrascan (Plan-based)
-        id: terrascan
-        uses: tenable/terrascan-action@main
+      - name: Run Terrascan (Terraform directory scan)
+        run: |
+          terrascan scan \
+            --iac-type terraform \
+            --iac-dir terraform-review-agent/terraform \
+            --policy-type aws \
+            --output json \
+            --output-file terrascan_report.json \
+            --exit-code 0
+
+      - name: Upload Terrascan Report
+        uses: actions/upload-artifact@v4
         with:
-           iac_type: 'terraform'
-           iac_version: 'v14'
-           policy_type: 'aws'
-           only_warn: true
-           
+          name: terrascan-report
+          path: terrascan_report.json  
+             
       - name: Invoke Terraform AI Review Lambda
         id: ai_review
         run: |
