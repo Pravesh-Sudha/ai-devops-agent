@@ -32,19 +32,18 @@ jobs:
       - name: Run Terrascan (Terraform directory scan)
         run: |
           terrascan scan \
-            --iac-type terraform \
-            --iac-dir terraform-review-agent/terraform \
-            --policy-type aws \
-            --output json \
-            --output-file terrascan_report.json \
-            --exit-code 0
+            -i terraform \
+            -d terraform-review-agent/terraform \
+            -t aws \
+            -o json \
+            --log-output-dir terrascan_report.json 
 
       - name: Upload Terrascan Report
         uses: actions/upload-artifact@v4
         with:
           name: terrascan-report
           path: terrascan_report.json  
-             
+
       - name: Invoke Terraform AI Review Lambda
         id: ai_review
         run: |
