@@ -31,7 +31,6 @@ jobs:
 
       - name: Run Terrascan (Terraform directory scan)
         run: |
-          set +e
           terrascan scan \
             -i terraform \
             -d terraform-review-agent/terraform \
@@ -39,10 +38,6 @@ jobs:
             -o json \
             --log-level error \
             > terrascan_report.json
-          set -e
-
-          echo "===== Terrascan JSON Output ====="
-          cat terrascan_report.json
 
       - name: Upload Terrascan Report
         uses: actions/upload-artifact@v4
@@ -55,6 +50,7 @@ jobs:
         run: |
           aws lambda invoke \
             --function-name terraform-ai-review-agent \
+            --cli-binary-format raw-in-base64-out \
             --payload file://terrascan_report.json \
             response.json
           cat response.json
