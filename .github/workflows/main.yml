@@ -55,7 +55,7 @@ jobs:
             --cli-binary-format raw-in-base64-out \
             --payload file://terrascan_report.json \
             response.json
-          jq . response.json
+          jq -r '.ai_review' response.json
 
       - name: Fail PR if AI rejects
         run: |
