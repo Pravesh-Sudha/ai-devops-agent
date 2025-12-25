@@ -31,11 +31,18 @@ jobs:
 
       - name: Run Terrascan (Terraform directory scan)
         run: |
+          set +e
           terrascan scan \
             -i terraform \
             -d terraform-review-agent/terraform \
             -t aws \
-            -o json > terrascan_report.json || true
+            -o json \
+            --log-level error \
+            > terrascan_report.json
+          set -e
+
+          echo "===== Terrascan JSON Output ====="
+          cat terrascan_report.json
 
       - name: Upload Terrascan Report
         uses: actions/upload-artifact@v4
