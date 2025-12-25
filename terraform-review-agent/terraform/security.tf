@@ -32,7 +32,7 @@ resource "aws_security_group" "mario_alb_sg" {
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "mario_alb_sg_ipv4" {
+resource "aws_vpc_security_group_ingress_rule" "mario_alb_sg_ipv41" {
   security_group_id = aws_security_group.mario_alb_sg.id
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = 80
