@@ -3,15 +3,13 @@ import urllib.request
 import urllib.error
 import boto3
 
-# ---------------- CONFIG ---------------- #
 GEMINI_MODEL = "gemini-2.5-flash"
 SECRET_NAME = "gemini-api-key-1"
-REGION_NAME = "us-east-1"  # change if needed
+REGION_NAME = "us-east-1"
 
 GEMINI_API_KEY = None
 
 
-# --------- FETCH SECRET (CACHED) -------- #
 def get_gemini_api_key():
     global GEMINI_API_KEY
 
@@ -26,7 +24,6 @@ def get_gemini_api_key():
     return GEMINI_API_KEY
 
 
-# ------------ DATA EXTRACTORS ----------- #
 def extract_relevant_findings(terrascan_results: dict) -> dict:
     violations = terrascan_results.get("violations", [])
     summary = terrascan_results.get("scan_summary", {})
@@ -55,8 +52,6 @@ def extract_relevant_findings(terrascan_results: dict) -> dict:
 
     return structured
 
-
-# ------------- PROMPT BUILDER ------------ #
 def build_prompt(findings: dict) -> str:
     return f"""
 You are a senior DevOps and Terraform security reviewer.
@@ -82,8 +77,6 @@ Findings:
 {json.dumps(findings, indent=2)}
 """
 
-
-# ------------- GEMINI CALL --------------- #
 def call_gemini(prompt: str) -> str:
     api_key = get_gemini_api_key()
 
@@ -119,17 +112,7 @@ def call_gemini(prompt: str) -> str:
         return f"Unexpected error calling Gemini: {str(e)}"
 
 
-# ------------- LAMBDA HANDLER ------------ #
 def lambda_handler(event, context):
-    """
-    Expected payload:
-    {
-      "results": {
-        "violations": [...],
-        "scan_summary": {...}
-      }
-    }
-    """
 
     try:
         results = event.get("results")
