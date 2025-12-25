@@ -8,7 +8,7 @@ resource "aws_security_group" "mario_ecs_sg" {
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "mario_ecs_sg_ipv4" {
+resource "aws_vpc_security_group_ingress_rule" "mario_ecs_sg_ipv422" {
   security_group_id            = aws_security_group.mario_ecs_sg.id
   referenced_security_group_id = aws_security_group.mario_alb_sg.id
   from_port                    = 80
