@@ -1,7 +1,7 @@
 name: Terraform-AI-Review-Agent
 
 on:
-  push:
+  pull_request:
     paths: "terraform-review-agent/**"
 
 jobs:
@@ -56,6 +56,7 @@ jobs:
             --payload file://terrascan_report.json \
             response.json
           cat response.json
+          
       - name: Fail PR if AI rejects
         run: |
           VERDICT=$(jq -r '.ai_review' response.json | grep -i "REJECT" || true)
