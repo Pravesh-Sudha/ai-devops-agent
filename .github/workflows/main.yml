@@ -59,10 +59,14 @@ jobs:
 
       - name: Fail PR if AI rejects
         run: |
-          VERDICT=$(jq -r '.ai_review' response.json | grep -i "REJECT" || true)
-          if [[ ! -z "$VERDICT" ]]; then
+          VERDICT=$(jq -r '.ai_review' response.json \
+            | sed -n 's/.*Final verdict:\s*\([A-Z_]*\).*/\1/p')
+
+          echo "🧠 AI Verdict: $VERDICT"
+
+          if [[ "$VERDICT" == "REJECT" ]]; then
             echo "❌ AI Agent rejected Terraform changes"
             exit 1
           else
-            echo "✅ AI Agent approved or approved with changes"
+            echo "✅ AI Agent approved (or approved with changes)"
           fi
