@@ -4,7 +4,7 @@ import urllib.error
 import boto3
 
 GEMINI_MODEL = "gemini-2.5-flash"
-SECRET_NAME = "gemini-api-key-1"
+SECRET_NAME = "gemini-api-key-2"
 REGION_NAME = "us-east-1"
 
 GEMINI_API_KEY = None
@@ -54,7 +54,7 @@ def extract_relevant_findings(terrascan_results: dict) -> dict:
 
 def build_prompt(findings: dict) -> str:
     return f"""
-You are a senior DevOps and Terraform security reviewer.
+You are a senior DevOps and Terraform security reviewer with strong AWS architecture experience.
 
 Analyze the Terrascan findings below and provide:
 
@@ -66,16 +66,26 @@ Analyze the Terrascan findings below and provide:
    - APPROVE_WITH_CHANGES
    - REJECT
 
-Rules:
-- Be concise
-- Use bullet points
-- Focus on AWS (ALB, ECS, VPC, IAM)
+Evaluation rules (IMPORTANT):
+- If the application is exposed ONLY over HTTP (no HTTPS listener, no TLS), the verdict MUST be **REJECT**
+- If HTTPS is configured at an AWS Application Load Balancer using ACM (TLS termination at ALB), this is a **valid and common AWS architecture**
+- Do NOT reject solely because traffic between ALB and targets uses HTTP
+- In such cases, prefer **APPROVE_WITH_CHANGES** with a clear security justification
+- End-to-end encryption (ALB → target HTTPS) is a best practice but NOT mandatory unless explicitly required
+- VPC Flow Logs, X-Ray, and similar observability issues should NOT cause rejection alone
 - Ignore Terrascan scan_errors
 - Do NOT repeat raw JSON
+
+Output guidelines:
+- Be concise
+- Use bullet points
+- Focus on AWS services (ALB, VPC, IAM, Lambda, ECS)
+- Use real-world production reasoning, not scanner-only logic
 
 Findings:
 {json.dumps(findings, indent=2)}
 """
+
 
 def call_gemini(prompt: str) -> str:
     api_key = get_gemini_api_key()
