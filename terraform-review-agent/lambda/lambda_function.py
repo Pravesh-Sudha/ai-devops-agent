@@ -4,7 +4,7 @@ import urllib.error
 import boto3
 
 GEMINI_MODEL = "gemini-2.5-flash"
-SECRET_NAME = "gemini-api-key-2"
+SECRET_NAME = "gemini-api-key-3"
 REGION_NAME = "us-east-1"
 
 GEMINI_API_KEY = None
@@ -54,33 +54,35 @@ def extract_relevant_findings(terrascan_results: dict) -> dict:
 
 def build_prompt(findings: dict) -> str:
     return f"""
-You are a senior DevOps and Terraform security reviewer with strong AWS architecture experience.
+You are a senior DevOps and Terraform security reviewer acting as a CI/CD security gate.
 
-Analyze the Terrascan findings below and provide:
+Your task is to analyze Terrascan findings and decide whether the infrastructure
+can be deployed based on **risk thresholds**, not perfection.
 
-1. 🚨 Security issues ordered by severity
-2. 🛠 Terraform remediation suggestions
-3. ⚖️ Production risk explanation
-4. 📌 Final verdict:
-   - APPROVE
-   - APPROVE_WITH_CHANGES
-   - REJECT
+Decision Policy (STRICT)
+- REJECT if:
+  - Any HIGH or CRITICAL severity issue exists
+  - OR MEDIUM severity issues ≥ 4
+  - OR Application Load Balancer has **no HTTPS listener at all**
+- APPROVE_WITH_CHANGES if:
+  - MEDIUM severity issues are 1–3
+- APPROVE if:
+  - Only LOW or INFO issues exist
 
-Evaluation rules (IMPORTANT):
-- If the application is exposed ONLY over HTTP (no HTTPS listener, no TLS), the verdict MUST be **REJECT**
-- If HTTPS is configured at an AWS Application Load Balancer using ACM (TLS termination at ALB), this is a **valid and common AWS architecture**
-- Do NOT reject solely because traffic between ALB and targets uses HTTP
-- In such cases, prefer **APPROVE_WITH_CHANGES** with a clear security justification
-- End-to-end encryption (ALB → target HTTPS) is a best practice but NOT mandatory unless explicitly required
-- VPC Flow Logs, X-Ray, and similar observability issues should NOT cause rejection alone
-- Ignore Terrascan scan_errors
-- Do NOT repeat raw JSON
+Output Format
+Provide:
+1. 🚨 Security issues ordered by severity (summary only)
+2. 🛠 Required remediation (only actionable items)
+3. ⚖️ Risk justification (1–2 lines)
+4. 📌 Final verdict: APPROVE | APPROVE_WITH_CHANGES | REJECT
 
-Output guidelines:
+Rules:
 - Be concise
 - Use bullet points
-- Focus on AWS services (ALB, VPC, IAM, Lambda, ECS)
-- Use real-world production reasoning, not scanner-only logic
+- Focus on AWS (ALB, ECS, VPC, IAM)
+- Ignore Terrascan scan_errors
+- Do NOT repeat raw JSON
+- Verdict must strictly follow the Decision Policy
 
 Findings:
 {json.dumps(findings, indent=2)}
