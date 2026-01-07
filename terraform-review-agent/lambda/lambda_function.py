@@ -4,7 +4,7 @@ import urllib.error
 import boto3
 
 GEMINI_MODEL = "gemini-2.5-flash"
-SECRET_NAME = "gemini-api-key-3"
+SECRET_NAME = "gemini-api-key-4"
 REGION_NAME = "us-east-1"
 
 GEMINI_API_KEY = None
