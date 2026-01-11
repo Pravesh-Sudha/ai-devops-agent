@@ -59,10 +59,7 @@ jobs:
 
       - name: Fail PR if AI rejects
         run: |
-          VERDICT=$(jq -r '.ai_review' response.json \
-          | grep -oE 'Final Verdict:\s*\**[A-Z_]+' \
-          | grep -oE '[A-Z_]+$' \
-          || true)
+          VERDICT=$(jq -r '.verdict' response.json)
 
           echo "🧠 AI Verdict: $VERDICT"
 
