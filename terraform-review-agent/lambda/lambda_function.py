@@ -124,8 +124,26 @@ def call_gemini(prompt: str) -> str:
         return f"Unexpected error calling Gemini: {str(e)}"
 
 
-def lambda_handler(event, context):
+def extract_verdict(review_text: str) -> str:
+    """
+    Extracts verdict from Gemini response.
+    Defaults to REJECT if unclear (fail-safe).
+    """
+    text = review_text.upper()
 
+    if "FINAL VERDICT" in text:
+        if "REJECT" in text:
+            return "REJECT"
+        if "APPROVE_WITH_CHANGES" in text:
+            return "APPROVE_WITH_CHANGES"
+        if "APPROVE" in text:
+            return "APPROVE"
+
+    # Fail-safe: never allow silent approval
+    return "REJECT"
+
+
+def lambda_handler(event, context):
     try:
         results = event.get("results")
         if not results:
@@ -136,16 +154,20 @@ def lambda_handler(event, context):
 
         findings = extract_relevant_findings(results)
         prompt = build_prompt(findings)
-        review = call_gemini(prompt)
+
+        ai_review = call_gemini(prompt)
+        verdict = extract_verdict(ai_review)
 
         return {
             "statusCode": 200,
-            "verdict_summary": findings["summary"],
-            "ai_review": review
+            "verdict": verdict,                     # ✅ structured decision
+            "summary": findings["summary"],         # useful for logs
+            "ai_review": ai_review                  # human-readable report
         }
 
     except Exception as e:
         return {
             "statusCode": 500,
+            "verdict": "REJECT",                     # fail closed
             "error": str(e)
         }
