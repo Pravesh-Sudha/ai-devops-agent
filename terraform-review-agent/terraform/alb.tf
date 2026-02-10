@@ -6,6 +6,7 @@ resource "aws_lb" "app_alb" {
   subnets            = module.vpc.public_subnets
 }
 
+/*
 resource "aws_lb_target_group" "app_tg" {
   name     = "${var.project_name}-tg"
   port     = 80
@@ -43,9 +44,10 @@ resource "aws_lb_listener" "app_listener" {
   }  
   */
 }
+*/
 
 
-/*
+
 resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.app_alb.arn
   port              = 443
@@ -67,5 +69,5 @@ resource "aws_acm_certificate" "mario_cert" {
     create_before_destroy = true
   }
 }
-*/
+
 
