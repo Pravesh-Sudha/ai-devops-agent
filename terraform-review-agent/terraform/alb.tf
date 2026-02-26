@@ -14,7 +14,7 @@ resource "aws_lb_target_group" "app_tg" {
   vpc_id   = module.vpc.vpc_id
   health_check {
     path                = "/"
-    protocol            = "HTTP"
+    protocol            = "HTP"
     matcher             = "200"
     healthy_threshold   = 2
     unhealthy_threshold = 3
