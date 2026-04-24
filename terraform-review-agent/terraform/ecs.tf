@@ -45,7 +45,7 @@ resource "aws_ecs_service" "mario_service" {
 
   load_balancer {
     target_group_arn = aws_lb_target_group.app_tg.arn
-    container_name   = "${var.project_name}"
+    container_name   = var.project_name
     container_port   = 80
   }
 
